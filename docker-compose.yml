@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:12.4-alpine
+    restart: on-failure
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: sf_user
+      POSTGRES_PASSWORD: random_password
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - .db-data:/var/lib/postgresql/data:rw
+    ports:
+      - "5432:5432"
+
+  wordpress:
+    image: wordpress:5.1-fpm-alpine
+    container_name: wp_app
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wp_db_dev
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: 'random_pass'
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+      - wp:/var/www/html
+
+  nginx:
+    image: nginx:1.18-alpine
+    container_name: wp_nginx
+    restart: always
+    ports:
+      - '8080:80'
+    links:
+      - php
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - wp:/var/www/html:ro
+    volumes_from:
+      - wordpress
+    depends_on:
+      - wordpress
+  php:
+    image: php:7-fpm
+    volumes:
+      - ./code:/code
+
+volumes:
+  wp:
+  db:

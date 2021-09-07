@@ -1,44 +1,38 @@
-version: '3.9'
+version: "3.7"
+services: 
 
-services:
-  mariadb:
-    image: mariadb:10.2
-    volumes:
-      - /data/mysql:/var/lib/mysql
+  db:
+    image: mariadb:10
+    container_name: wp-60sec-db
     environment:
       MYSQL_ROOT_PASSWORD: mysql_root_pass
       MYSQL_DATABASE: db_name
       MYSQL_USER: user_name
       MYSQL_PASSWORD: user_pass
-    restart: always
-
-  wordpress:
-    image: wordpress:latest
+  
+  wordpress-fpm:
+    image: wordpress:5-fpm-alpine
+    container_name: wp-60sec-fpm
+    links:
+      - db
     volumes:
-      - /data/html:/var/www/html
-    depends_on:
-      - mysql
+      - wp_files:/var/www/html
     environment:
-      WORDPRESS_DB_HOST: mysql
-      MYSQL_ROOT_PASSWORD: mysql_root_pass
+      WORDPRESS_DB_HOST: mariadb
       WORDPRESS_DB_NAME: db_name
       WORDPRESS_DB_USER: user_name
       WORDPRESS_DB_PASSWORD: user_pass
-      WORDPRESS_TABLE_PREFIX: wp_
-    links:
-      - mysql
-    restart: always
-
+  
   nginx:
     image: nginx:alpine
-    volumes:
-      - nginx:/etc/nginx/conf.d
-      - /data/html:/var/www/html
+    container_name: wp-60sec-nginx
+    depends_on: 
+      - wordpress-fpm
     ports:
-      - 8080:80
-    links:
-      - wordpress
-volumes:
-  nginx:
-  wordpress:
-  mariadb:
+      - 8085:80
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+      - wp_files:/var/www/html
+
+volumes: 
+  wp_files: 

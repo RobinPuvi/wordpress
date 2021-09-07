@@ -18,7 +18,7 @@ services:
     volumes:
       - wp_files:/var/www/html
     environment:
-      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_HOST: wp-60sec-db
       WORDPRESS_DB_NAME: db_name
       WORDPRESS_DB_USER: user_name
       WORDPRESS_DB_PASSWORD: user_pass
